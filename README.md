@@ -1,4 +1,4 @@
-# Project Title
+# Gasoline Production Cost vs. Gasoline Consumer Cost
 
 This repo is to keep work relating to our Stat 184 Group Final Project organized.
 
