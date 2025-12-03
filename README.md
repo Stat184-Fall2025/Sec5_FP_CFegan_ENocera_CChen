@@ -1,10 +1,10 @@
 # Project Title
 
-Write a 1-2 sentences that quickly and clearly convey what your repo is for.
+This repo is to keep work relating to our Stat 184 Group Final Project organized.
 
 ## Overview
 
-Expand on those introductory sentences with a brief but informative description of your project's purpose and goals. This section should help visitors decide whether they should dig deeper into your repo/project.
+The goal of this project is to show the relation between the cost of producing gasoline and the consumer cost of gasoline, while also seeing how major events effected these metrics. We also will work on improving our skills relating to graphics creation.
 
 ### Interesting Insight (Optional)
 
@@ -12,17 +12,18 @@ This is optional but highly recommended. You'll include one interesting insight 
 
 ## Data Sources and Acknowledgements
 
-Be sure to list where you got any data used within the project. Be sure to acknowledge any one whose work or elements you're drawing upon.
+Our data is coming from the US Bureau of Labor Statistics Series reports. I do not have the link at the time of writing this but it will be added.
 
 ## Current Plan
 
-Provide some information about what you intend to doe with the project. You can additionally refer the visitor to your detailed plan document.
+Create comparison visuals between the cost of producing gasoline and the consumer cost of gasoline, as well as adding dates of significant economical events.
 
 ## Repo Structure
 
-Use this section to explain the structure of your repo. This should help visitors quickly figure out where they should look to find certain elements. Further, you can use this space to highlight and briefly explain important/key files in the repo.
-
+Branches will be used to organize different elements of code such as data wrangling, cleaning, and visual creation.
 
 ## Authors
 
-Give information about who are the authors of the project and how people can get in touch if they have questions.
+Connor Fegan - csf5330@psu.edu
+Ella Nocera - ecn5110@psu.edu
+Canyi Chen - cvc6413@psu.edu
