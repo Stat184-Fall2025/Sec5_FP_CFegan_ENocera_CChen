@@ -15,7 +15,7 @@ library(tidyverse)
 #Price Index is based on percent change
 ConsumerPrice <- read_xlsx(
   path = "C:/Users/ellan/OneDrive/Documents/ConsumerPriceData.xlsx") %>%
-  rename(Consumer = Annual)
+  rename("Consumer Price" = Annual)
 
 ProducerExtractionPrice <- read_xlsx(
   path = "C:/Users/ellan/OneDrive/Documents/OilExtractionCost.xlsx") %>%
@@ -34,7 +34,7 @@ ProducerWellPrice <- read_xlsx(
   rename("Average Oil Well Cost" = Annual)
 
 
-##Step 3: Create new data table to show yearly averages for each table
+##Step 3: Create new data table to show yearly averages for each producer cost
 ProducerPriceIndex <- bind_cols( #combine producer data tables
                            ProducerExtractionPrice, 
                            ProducerMachinePrice,
@@ -56,6 +56,20 @@ ProducerPriceIndex <- bind_cols( #combine producer data tables
     names_to = "Variable",
     values_to = "Change")
 
+ConsumerVSExtraction <- bind_cols( #combine producer data tables
+  ProducerExtractionPrice, 
+  ConsumerPrice) %>%
+  dplyr::select( #keep only the yearly average columns
+    1, 
+    "Consumer Price", 
+    "Average Extraction Cost") %>%
+  rename( #make the Year column easier to read
+    Year = "Year...1") %>%
+  pivot_longer(
+    cols = c("Consumer Price", 
+             "Average Extraction Cost"),
+    names_to = "Variable",
+    values_to = "Change")
 
 ##Step 4: Make graphics for each table, and one graph contrasting each variable
 #Producer costs over the years
@@ -71,20 +85,22 @@ ggplot(ProducerPriceIndex, aes(Year, Change, colour = Variable)) +
   facet_wrap(. ~ Variable)
 
 #Consumer costs over the year
-ggplot(ConsumerPrice, aes(Year, Consumer)) + 
+ggplot(ConsumerPrice, aes(Year, `Consumer Price`)) + 
   geom_line(linewidth = 1, color = '#EE2C2C') +
   theme_gray() +
   labs( dictionary = c(
-    Consumer = "Percent Change"),
+    `Consumer Price` = "Percent Change"),
     title = "Percent Change in Consumer Price of Oil Over Time",
     subtitle = "2005-2024")
 
-ggplot(ProducerExtractionPrice, aes(Year, `Average Extraction Cost`)) + 
-  geom_line(linewidth = 1, color = '#4169E1') +
+ggplot(ConsumerVSExtraction, aes(Year, Change, colour = Variable)) + 
+  geom_line(linewidth = 1) + 
+  scale_color_manual(values=c('#4169E1', '#EE2C2C')) +
   theme_gray() +
-  labs( dictionary = c(
-    `Average Extraction Cost` = "Percent Change"),
-    title = "Percent Change in Extraction Cost of Oil Over Time",
+  labs(dictionary = c(
+    Variable = "Cost Type",
+    Change = "Percent Change"),
+    title = "Percent Change In Extraction Cost Vs. Consumer Price",
     subtitle = "2005-2024")
 
 
