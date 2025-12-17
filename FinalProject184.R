@@ -10,45 +10,38 @@ library(rvest)
 library(tidyr)
 library(tidyverse)
 
-
+###Ella's Code
 ##Step 2: Load and clean up the needed data
-#Consumer Index is based on dollars-per-gallon
-ConsumerPrice <- read_xlsx(path = "C:/Users/ellan/OneDrive/Documents/ConsumerPriceData.xlsx") %>%
-  rename( #rename "annual" to make it more recognizable when data tables are combined
-    "Average Consumer Price" = Annual)
+#Price Index is based on percent change
+ConsumerPrice <- read_xlsx(
+  path = "C:/Users/ellan/OneDrive/Documents/ConsumerPriceData.xlsx") %>%
+  rename(Consumer = Annual)
 
-#Producer Index is based on cents-per-gallon, so change that to match consumer index and make more sense to audience
-ProducerExtractionPrice <- read_xlsx(path = "C:/Users/ellan/OneDrive/Documents/OilExtractionCost.xlsx") %>%
-  rename("Average Extraction Cost" = Annual) %>%
-  mutate_if(is.numeric, ~ . / 100) %>%
-  mutate(Year = Year * 100)
+ProducerExtractionPrice <- read_xlsx(
+  path = "C:/Users/ellan/OneDrive/Documents/OilExtractionCost.xlsx") %>%
+  rename("Average Extraction Cost" = Annual)
 
-ProducerTransportPrice <- read_xlsx(path = "C:/Users/ellan/OneDrive/Documents/ProducerTransportPrice.xlsx") %>%
-  rename("Average Transport Cost" = Annual)%>%
-  mutate_if(is.numeric, ~ . / 100) %>%
-  mutate(Year = Year * 100)
+ProducerTransportPrice <- read_xlsx(
+  path = "C:/Users/ellan/OneDrive/Documents/ProducerTransportPrice.xlsx") %>%
+  rename("Average Transport Cost" = Annual)
 
-ProducerMachinePrice <- read_xlsx(path = "C:/Users/ellan/OneDrive/Documents/ProducerMachinePrice.xlsx") %>%
-  rename("Average Machinery Cost" = Annual)%>%
-  mutate_if(is.numeric, ~ . / 100) %>%
-  mutate(Year = Year * 100)
+ProducerMachinePrice <- read_xlsx(
+  path = "C:/Users/ellan/OneDrive/Documents/ProducerMachinePrice.xlsx") %>%
+  rename("Average Machinery Cost" = Annual)
 
-ProducerWellPrice <- read_xlsx(path = "C:/Users/ellan/OneDrive/Documents/ProducerWellPrice.xlsx") %>%
-  rename("Average Oil Well Cost" = Annual)%>%
-  mutate_if(is.numeric, ~ . / 100) %>%
-  mutate(Year = Year * 100)
+ProducerWellPrice <- read_xlsx(
+  path = "C:/Users/ellan/OneDrive/Documents/ProducerWellPrice.xlsx") %>%
+  rename("Average Oil Well Cost" = Annual)
 
 
 ##Step 3: Create new data table to show yearly averages for each table
-OilPriceIndex <- bind_cols( #combine all of the data tables
-                           ConsumerPrice, 
+ProducerPriceIndex <- bind_cols( #combine producer data tables
                            ProducerExtractionPrice, 
                            ProducerMachinePrice,
                            ProducerTransportPrice,
                            ProducerWellPrice) %>%
   dplyr::select( #keep only the yearly average columns
                 1, 
-                "Average Consumer Price", 
                 "Average Oil Well Cost", 
                 "Average Machinery Cost", 
                 "Average Extraction Cost", 
@@ -56,25 +49,152 @@ OilPriceIndex <- bind_cols( #combine all of the data tables
   rename( #make the Year column easier to read
     Year = "Year...1") %>%
   pivot_longer(
-    cols = c("Average Consumer Price", 
-             "Average Oil Well Cost", 
+    cols = c("Average Oil Well Cost", 
              "Average Machinery Cost", 
              "Average Extraction Cost", 
              "Average Transport Cost"),
-    names_to = "Cost Type",
-    values_to = "Cost")
+    names_to = "Variable",
+    values_to = "Change")
+
 
 ##Step 4: Make graphics for each table, and one graph contrasting each variable
-#Consumer price over the years
-ggplot(OilPriceIndex, aes(Year, Cost, colour = "Cost Type")) + 
-         geom_line(linewidth = 1) + scale_color_manual(values=c('#EE2C2C', '#43CD80', '#4169E1', '#9370DB', 'lightpink1'))
+#Producer costs over the years
+ggplot(ProducerPriceIndex, aes(Year, Change, colour = Variable)) + 
+         geom_line(linewidth = 1.05) + 
+  scale_color_manual(values=c('#4169E1', '#A020F0', '#FA8072', '#4EEE94')) +
+  theme_gray() +
+  labs(dictionary = c(
+    Variable = "Cost Type",
+    Change = "Percent Change"),
+    title = "Percent Change In Production Cost of Oil Over Time",
+    subtitle = "2005-2024") + 
+  facet_wrap(. ~ Variable)
 
-ConsumerPriceGraph <- ConsumerPrice %>%
-  dplyr::select(!"Average Consumer Price") %>%
+#Consumer costs over the year
+ggplot(ConsumerPrice, aes(Year, Consumer)) + 
+  geom_line(linewidth = 1, color = '#EE2C2C') +
+  theme_gray() +
+  labs( dictionary = c(
+    Consumer = "Percent Change"),
+    title = "Percent Change in Consumer Price of Oil Over Time",
+    subtitle = "2005-2024")
+
+ggplot(ProducerExtractionPrice, aes(Year, `Average Extraction Cost`)) + 
+  geom_line(linewidth = 1, color = '#4169E1') +
+  theme_gray() +
+  labs( dictionary = c(
+    `Average Extraction Cost` = "Percent Change"),
+    title = "Percent Change in Extraction Cost of Oil Over Time",
+    subtitle = "2005-2024")
+
+
+
+
+
+###Connor's Code
+## Helper function:
+## Reads a table, extracts annual values, and converts to percent change
+load_table <- function(path, value_name) {
+  read_xlsx(path) %>%
+    clean_names() %>%
+    select(year, annual) %>%
+    rename(!!value_name := annual) %>%
+    mutate(
+      !!paste0(value_name, "_pct_change") :=
+        (!!sym(value_name) / first(!!sym(value_name)) - 1) * 100
+    )
+}
+
+
+
+## Step 2: Load all tables using the function
+consumer_df  <- load_table("C:/Users/AINE/Documents/Re_Github_Repo/ConsumerPriceData.xlsx",
+                           "consumer_price")
+
+extract_df   <- load_table("C:/Users/AINE/Documents/Re_Github_Repo/OilExtractionCost.xlsx",
+                           "extraction_cost")
+
+transport_df <- load_table("C:/Users/AINE/Documents/Re_Github_Repo/ProducerTransportPrice.xlsx",
+                           "transport_cost")
+
+machine_df   <- load_table("C:/Users/AINE/Documents/Re_Github_Repo/ProducerMachinePrice.xlsx",
+                           "machine_cost")
+
+well_df      <- load_table("C:/Users/AINE/Documents/Re_Github_Repo/ProducerWellPrice.xlsx",
+                           "well_cost")
+
+
+## Step 3: Join all into a single dataset
+combined <- consumer_df %>%
+  left_join(extract_df,   by = "year") %>%
+  left_join(transport_df, by = "year") %>%
+  left_join(machine_df,   by = "year") %>%
+  left_join(well_df,      by = "year")
+
+
+## Step 4: Compute SUM of all production-related % changes
+combined <- combined %>%
+  mutate(
+    production_pct_sum =
+      extraction_cost_pct_change +
+      transport_cost_pct_change +
+      machine_cost_pct_change +
+      well_cost_pct_change
+  )
+
+
+## Step 5: Reshape for plotting
+plot_df <- combined %>%
+  select(year,
+         consumer_pct = consumer_price_pct_change,
+         production_pct_sum) %>%
   pivot_longer(
-    cols = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"),
-    names_to = "Month",
-    values_to = "Price") %>%
-  group_by(Year)
+    cols = -year,
+    names_to = "type",
+    values_to = "pct"
+  )
 
-ggplot(ConsumerPrice, aes(x=Year, y="Average Consumer Price")) + geom_line(aes(group="Price"),linewidth=1, colour = '#EE2C2C')
+
+## Step 6: Graph comparing consumer % change vs production-sum % change
+ggplot(plot_df, aes(x = year, y = pct, color = type)) +
+  geom_line(size = 1.2) +
+  labs(
+    title = "Annual Percentage Change Comparison:\nConsumer Gas Price vs Sum of Production Costs",
+    x = "Year",
+    y = "Percent Change (%)",
+    color = "Category"
+  ) +
+  scale_color_manual(values = c("red", "blue"),
+                     labels = c("Consumer Gas Price % Change",
+                                "Total Production Cost % Change")) +
+  theme_minimal(base_size = 14)
+
+## Step 7: Create a comparison table comparing each individual dataset's percentage change
+comparison_table <- combined %>%
+  select(
+    year,
+    Consumer = consumer_price_pct_change,
+    Extraction = extraction_cost_pct_change,
+    Transport = transport_cost_pct_change,
+    Machinery = machine_cost_pct_change,
+    Well = well_cost_pct_change,
+    Production_Sum = production_pct_sum
+  ) %>%
+  pivot_longer(
+    cols = -year,
+    names_to = "Category",
+    values_to = "Percent_Change"
+  )
+
+## Step 8: Graph comparing all datasets
+ggplot(comparison_table,
+       aes(x = year, y = Percent_Change, color = Category)) +
+  geom_line(size = 1.2) +
+  labs(
+    title = "Annual Percentage Change Comparison Across All Cost Categories",
+    x = "Year",
+    y = "Percent Change (%)",
+    color = "Category"
+  ) +
+  theme_minimal(base_size = 14) +
+  scale_color_brewer(palette = "Dark2")
