@@ -1,0 +1,467 @@
+---
+title: "Gasoline Production Cost vs. Gasoline Consumer Cost"
+author: "Connor Fegan, Ella Nocera, Canyi Chen"
+format: pdf
+---
+
+## Introduction
+
+We took on the challenge of exploring how the consumer price of oil changes over the years of 2005–2024. We compare these changes with the change in production cost of oil. We then look at how these changes in price may have been influenced by economic crises.
+
+Data for this report come from the **U.S. Bureau of Labor Statistics (BLS)**. The data are reported as annual percent changes in price indices. Our analysis compares average annual percent changes.
+
+## Why Oil?
+
+Oil, or “gasoline” in this case for consumers, is necessary to life in America. It is used daily for personal transportation, public transit, and the movement of goods. Oil is also a key input in producing plastics, detergents, cosmetics, and many other products.
+
+Because gasoline is essential, it has relatively low price elasticity of demand. This means large price changes do not strongly affect the quantity consumers purchase. This makes gasoline a useful case study, as changes in consumer prices are more likely to reflect production costs and macroeconomic conditions rather than shifts in consumer preferences.
+
+## Economic Crises
+
+This analysis focuses on three major economic disruptions:
+
+- **2008 Financial Crisis:** Reduced consumption, even of necessities, led firms to lower prices to stimulate demand.
+- **2015 Oil Glut:** Excess oil supply created a surplus, forcing prices downward.
+- **2020 COVID-19 Pandemic:** Travel restrictions and income losses reduced demand, lowering prices, followed by a sharp rebound as economic activity resumed.
+
+---
+
+## Comparing Production Costs
+
+![Four graphs showing percent change in oil production costs from 2005 to 2024, categorized by extraction, machinery, oil well, and transport costs.](stat184_2.png)
+
+**Long Description:**  
+The figure contains four line graphs showing percent change in oil production costs from 2005 to 2024. Extraction costs fluctuate widely, machinery costs remain stable, oil well costs vary moderately, and transport costs show limited variation.
+
+**Alt Text:**  
+Four graphs showing percent change in oil production costs from 2005 to 2024, separated by extraction, machinery, oil well, and transport costs.
+
+### Analysis
+
+Extraction costs display the greatest volatility, ranging from decreases greater than 3% to increases near 6%. In contrast, machinery and transport costs remain relatively stable over time. This suggests that extraction cost fluctuations play a key role in overall production cost variability.
+
+---
+
+## Consumer Price Change Analysis
+
+![Line graph showing percent change in consumer oil prices from 2005 to 2024.](stat184_3.png)
+
+**Long Description:**  
+This line graph shows annual percent changes in consumer oil prices from 2005 to 2024. Significant declines are visible during 2008, 2015, and 2020, followed by a strong post-pandemic increase.
+
+**Alt Text:**  
+Line graph showing percent change in consumer oil prices from 2005 to 2024.
+
+### Analysis
+
+The largest decreases in consumer oil prices align with major economic disruptions. The 2015 oil glut produced the steepest decline due to extreme oversupply. Following the COVID-19 pandemic, prices rose sharply as travel resumed and demand recovered.
+
+---
+
+## Consumer Cost vs. Extraction Cost
+
+![Line graph showing percent change in extraction cost and consumer price from 2005 to 2024.](stat184.png)
+
+**Long Description:**  
+The figure compares percent changes in extraction costs and consumer prices over time. Extraction costs show sharper peaks and troughs than consumer prices.
+
+**Alt Text:**  
+Line graph showing percent change in extraction cost and consumer price from 2005 to 2024.
+
+### Analysis
+
+Among all production cost categories, extraction costs most closely track consumer prices, though with greater volatility. When consumer prices increase by about 3%, extraction costs often increase by nearly twice that amount.
+
+---
+
+## Consumer Cost vs. Production Cost
+
+![Line graph showing percent change in production cost and consumer price from 2005 to 2024.](Rplot.png)
+
+**Long Description:**  
+The figure compares percent changes in production costs and consumer prices over time. Production costs show sharper peaks and troughs than consumer prices.
+
+**Alt Text:**  
+Line graph showing percent change in production cost and consumer price from 2005 to 2024.
+
+### Analysis
+
+When summing all prodctoin costs, they closely track consumer prices, though with greater volatility.
+
+---
+
+## Data and Methods
+
+All data were obtained from the **U.S. Bureau of Labor Statistics (bls.gov)**. The analysis uses annual percent change data and focuses on trends rather than short-term fluctuations.
+
+---
+
+## Author Contributions
+
+- **Ella Nocera:** Data cleaning, visualization, and production cost analysis  
+- **Connor Fegan:** Aggregated cost modeling and comparative analysis  
+- **Canyi Chen:** Narrative development and contextual economic analysis  
+
+---
+
+## Code Appendix
+
+### Code Style Guide
+
+```r
+# Tidyverse Style Guide
+# https://style.tidyverse.org/
+```
+
+---
+
+### Ella Nocera — Primary Analysis Code  
+*Primary Author: Ella Nocera*  
+*Code Review: Connor Fegan*
+
+```r
+##Step 1:Load needed packages
+library(dplyr)
+library(ggplot2)
+library(janitor)
+library(kableExtra)
+library(knitr)
+library(quarto)
+library(readxl)
+library(rvest)
+library(tidyr)
+library(tidyverse)
+
+###Ella's Code
+##Step 2: Load and clean up the needed data
+#Price Index is based on percent change
+ConsumerPrice <- read_xlsx(
+  path = "C:/Users/AINE/Documents/Re_Github_Repo/ConsumerPriceData.xlsx") %>%
+  rename("Consumer Price" = Annual)
+
+ProducerExtractionPrice <- read_xlsx(
+  path = "C:/Users/AINE/Documents/Re_Github_Repo/OilExtractionCost.xlsx") %>%
+  rename("Average Extraction Cost" = Annual)
+
+ProducerTransportPrice <- read_xlsx(
+  path = "C:/Users/AINE/Documents/Re_Github_Repo/ProducerTransportPrice.xlsx") %>%
+  rename("Average Transport Cost" = Annual)
+
+ProducerMachinePrice <- read_xlsx(
+  path = "C:/Users/AINE/Documents/Re_Github_Repo/ProducerMachinePrice.xlsx") %>%
+  rename("Average Machinery Cost" = Annual)
+
+ProducerWellPrice <- read_xlsx(
+  path = "C:/Users/AINE/Documents/Re_Github_Repo/ProducerWellPrice.xlsx") %>%
+  rename("Average Oil Well Cost" = Annual)
+
+
+##Step 3: Create new data table to show yearly averages for each producer cost
+ProducerPriceIndex <- bind_cols( #combine producer data tables
+  ProducerExtractionPrice, 
+  ProducerMachinePrice,
+  ProducerTransportPrice,
+  ProducerWellPrice) %>%
+  dplyr::select( #keep only the yearly average columns
+    1, 
+    "Average Oil Well Cost", 
+    "Average Machinery Cost", 
+    "Average Extraction Cost", 
+    "Average Transport Cost") %>%
+  rename( #make the Year column easier to read
+    Year = "Year...1") %>%
+  pivot_longer(
+    cols = c("Average Oil Well Cost", 
+             "Average Machinery Cost", 
+             "Average Extraction Cost", 
+             "Average Transport Cost"),
+    names_to = "Variable",
+    values_to = "Change")
+
+ConsumerVSExtraction <- bind_cols( #combine producer data tables
+  ProducerExtractionPrice, 
+  ConsumerPrice) %>%
+  dplyr::select( #keep only the yearly average columns
+    1, 
+    "Consumer Price", 
+    "Average Extraction Cost") %>%
+  rename( #make the Year column easier to read
+    Year = "Year...1") %>%
+  pivot_longer(
+    cols = c("Consumer Price", 
+             "Average Extraction Cost"),
+    names_to = "Variable",
+    values_to = "Change")
+
+##Step 4: Make graphics for each table, and one graph contrasting each variable
+#Producer costs over the years
+ggplot(ProducerPriceIndex, aes(Year, Change, colour = Variable)) + 
+  geom_line(linewidth = 1.05) + 
+  scale_color_manual(values=c('#4169E1', '#A020F0', '#FA8072', '#4EEE94')) +
+  theme_gray() +
+  labs(dictionary = c(
+    Variable = "Cost Type",
+    Change = "Percent Change"),
+    title = "Percent Change In Production Cost of Oil Over Time",
+    subtitle = "2005-2024") + 
+  facet_wrap(. ~ Variable)
+
+#Consumer costs over the year
+ggplot(ConsumerPrice, aes(Year, `Consumer Price`)) + 
+  geom_line(linewidth = 1, color = '#EE2C2C') +
+  theme_gray() +
+  labs( dictionary = c(
+    `Consumer Price` = "Percent Change"),
+    title = "Percent Change in Consumer Price of Oil Over Time",
+    subtitle = "2005-2024")
+
+ggplot(ConsumerVSExtraction, aes(Year, Change, colour = Variable)) + 
+  geom_line(linewidth = 1) + 
+  scale_color_manual(values=c('#4169E1', '#EE2C2C')) +
+  theme_gray() +
+  labs(dictionary = c(
+    Variable = "Cost Type",
+    Change = "Percent Change"),
+    title = "Percent Change In Extraction Cost Vs. Consumer Price",
+    subtitle = "2005-2024")
+
+
+
+
+
+###Connor's Code
+## Helper function:
+## Reads a table, extracts annual values, and converts to percent change
+load_table <- function(path, value_name) {
+  read_xlsx(path) %>%
+    clean_names() %>%
+    select(year, annual) %>%
+    rename(!!value_name := annual) %>%
+    mutate(
+      !!paste0(value_name, "_pct_change") :=
+        (!!sym(value_name) / first(!!sym(value_name)) - 1) * 100
+    )
+}
+
+
+
+## Step 2: Load all tables using the function
+consumer_df  <- load_table("C:/Users/AINE/Documents/Re_Github_Repo/ConsumerPriceData.xlsx",
+                           "consumer_price")
+
+extract_df   <- load_table("C:/Users/AINE/Documents/Re_Github_Repo/OilExtractionCost.xlsx",
+                           "extraction_cost")
+
+transport_df <- load_table("C:/Users/AINE/Documents/Re_Github_Repo/ProducerTransportPrice.xlsx",
+                           "transport_cost")
+
+machine_df   <- load_table("C:/Users/AINE/Documents/Re_Github_Repo/ProducerMachinePrice.xlsx",
+                           "machine_cost")
+
+well_df      <- load_table("C:/Users/AINE/Documents/Re_Github_Repo/ProducerWellPrice.xlsx",
+                           "well_cost")
+
+
+## Step 3: Join all into a single dataset
+combined <- consumer_df %>%
+  left_join(extract_df,   by = "year") %>%
+  left_join(transport_df, by = "year") %>%
+  left_join(machine_df,   by = "year") %>%
+  left_join(well_df,      by = "year")
+
+
+## Step 4: Compute SUM of all production-related % changes
+combined <- combined %>%
+  mutate(
+    production_pct_sum =
+      extraction_cost_pct_change +
+      transport_cost_pct_change +
+      machine_cost_pct_change +
+      well_cost_pct_change
+  )
+
+
+## Step 5: Reshape for plotting
+plot_df <- combined %>%
+  select(year,
+         consumer_pct = consumer_price_pct_change,
+         production_pct_sum) %>%
+  pivot_longer(
+    cols = -year,
+    names_to = "type",
+    values_to = "pct"
+  )
+
+
+## Step 6: Graph comparing consumer % change vs production-sum % change
+ggplot(plot_df, aes(x = year, y = pct, color = type)) +
+  geom_line(size = 1.2) +
+  labs(
+    title = "Annual Percentage Change Comparison:\nConsumer Gas Price vs Sum of Production Costs",
+    x = "Year",
+    y = "Percent Change (%)",
+    color = "Category"
+  ) +
+  scale_color_manual(values = c("red", "blue"),
+                     labels = c("Consumer Gas Price % Change",
+                                "Total Production Cost % Change")) +
+  theme_minimal(base_size = 14)
+
+## Step 7: Create a comparison table comparing each individual dataset's percentage change
+comparison_table <- combined %>%
+  select(
+    year,
+    Consumer = consumer_price_pct_change,
+    Extraction = extraction_cost_pct_change,
+    Transport = transport_cost_pct_change,
+    Machinery = machine_cost_pct_change,
+    Well = well_cost_pct_change,
+    Production_Sum = production_pct_sum
+  ) %>%
+  pivot_longer(
+    cols = -year,
+    names_to = "Category",
+    values_to = "Percent_Change"
+  )
+
+## Step 8: Graph comparing all datasets
+ggplot(comparison_table,
+       aes(x = year, y = Percent_Change, color = Category)) +
+  geom_line(size = 1.2) +
+  labs(
+    title = "Annual Percentage Change Comparison Across All Cost Categories",
+    x = "Year",
+    y = "Percent Change (%)",
+    color = "Category"
+  ) +
+  theme_minimal(base_size = 14) +
+  scale_color_brewer(palette = "Dark2")
+```
+
+---
+
+### Connor Fegan — Aggregated Cost Comparison Code  
+*Primary Author: Connor Fegan*  
+*Code Review: Ella Nocera*
+
+```r
+## Step 1: Load packages
+library(tidyverse)
+library(readxl)
+library(janitor)
+
+
+## Helper function:
+## Reads a table, extracts annual values, and converts to percent change
+load_table <- function(path, value_name) {
+  read_xlsx(path) %>%
+    clean_names() %>%
+    select(year, annual) %>%
+    rename(!!value_name := annual) %>%
+    mutate(
+      !!paste0(value_name, "_pct_change") :=
+        (!!sym(value_name) / first(!!sym(value_name)) - 1) * 100
+    )
+}
+
+
+
+## Step 2: Load all tables using the function
+consumer_df  <- load_table("C:/Users/AINE/Documents/Re_Github_Repo/ConsumerPriceData.xlsx",
+                           "consumer_price")
+
+extract_df   <- load_table("C:/Users/AINE/Documents/Re_Github_Repo/OilExtractionCost.xlsx",
+                           "extraction_cost")
+
+transport_df <- load_table("C:/Users/AINE/Documents/Re_Github_Repo/ProducerTransportPrice.xlsx",
+                           "transport_cost")
+
+machine_df   <- load_table("C:/Users/AINE/Documents/Re_Github_Repo/ProducerMachinePrice.xlsx",
+                           "machine_cost")
+
+well_df      <- load_table("C:/Users/AINE/Documents/Re_Github_Repo/ProducerWellPrice.xlsx",
+                           "well_cost")
+
+
+## Step 3: Join all into a single dataset
+combined <- consumer_df %>%
+  left_join(extract_df,   by = "year") %>%
+  left_join(transport_df, by = "year") %>%
+  left_join(machine_df,   by = "year") %>%
+  left_join(well_df,      by = "year")
+
+
+## Step 4: Compute SUM of all production-related % changes
+combined <- combined %>%
+  mutate(
+    production_pct_sum =
+      extraction_cost_pct_change +
+      transport_cost_pct_change +
+      machine_cost_pct_change +
+      well_cost_pct_change
+  )
+
+
+## Step 5: Reshape for plotting
+plot_df <- combined %>%
+  select(year,
+         consumer_pct = consumer_price_pct_change,
+         production_pct_sum) %>%
+  pivot_longer(
+    cols = -year,
+    names_to = "type",
+    values_to = "pct"
+  )
+
+
+## Step 6: Graph comparing consumer % change vs production-sum % change
+ggplot(plot_df, aes(x = year, y = pct, color = type)) +
+  geom_line(size = 1.2) +
+  labs(
+    title = "Annual Percentage Change Comparison:\nConsumer Gas Price vs Sum of Production Costs",
+    x = "Year",
+    y = "Percent Change (%)",
+    color = "Category"
+  ) +
+  scale_color_manual(values = c("red", "blue"),
+                     labels = c("Consumer Gas Price % Change",
+                                "Total Production Cost % Change")) +
+  theme_minimal(base_size = 14)
+
+## Step 7: Create a comparison table comparing each individual dataset's percentage change
+comparison_table <- combined %>%
+  select(
+    year,
+    Consumer = consumer_price_pct_change,
+    Extraction = extraction_cost_pct_change,
+    Transport = transport_cost_pct_change,
+    Machinery = machine_cost_pct_change,
+    Well = well_cost_pct_change,
+    Production_Sum = production_pct_sum
+  ) %>%
+  pivot_longer(
+    cols = -year,
+    names_to = "Category",
+    values_to = "Percent_Change"
+  )
+
+## Step 8: Graph comparing all datasets
+ggplot(comparison_table,
+       aes(x = year, y = Percent_Change, color = Category)) +
+  geom_line(size = 1.2) +
+  labs(
+    title = "Annual Percentage Change Comparison Across All Cost Categories",
+    x = "Year",
+    y = "Percent Change (%)",
+    color = "Category"
+  ) +
+  theme_minimal(base_size = 14) +
+  scale_color_brewer(palette = "Dark2")
+
+```
+
+---
+
+## References
+
+U.S. Bureau of Labor Statistics. (2005–2024). *Consumer Price Index and Producer Price Index data*. https://www.bls.gov
